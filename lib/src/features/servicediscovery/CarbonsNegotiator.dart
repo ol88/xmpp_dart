@@ -29,6 +29,11 @@ class CarbonsNegotiator extends Negotiator {
     return instance;
   }
 
+  static void removeInstance(Connection connection) {
+    _instances[connection]?._subscription.cancel();
+    _instances.remove(connection);
+  }
+
   final Connection _connection;
 
   bool enabled = false;

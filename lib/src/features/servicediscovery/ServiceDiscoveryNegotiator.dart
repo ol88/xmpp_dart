@@ -28,6 +28,11 @@ class ServiceDiscoveryNegotiator extends Negotiator {
     return instance;
   }
 
+  static void removeInstance(Connection connection) {
+    _instances[connection]?.subscription.cancel();
+    _instances.remove(connection);
+  }
+
   IqStanza? fullRequestStanza;
 
   late StreamSubscription<AbstractStanza?> subscription;

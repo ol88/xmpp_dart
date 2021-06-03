@@ -25,6 +25,11 @@ class MAMNegotiator extends Negotiator {
     return instance;
   }
 
+  static void removeInstance(Connection connection) {
+    _instances[connection]?._subscription.cancel();
+    _instances.remove(connection);
+  }
+
   late IqStanza _myUnrespondedIqStanza;
 
   late StreamSubscription<AbstractStanza?> _subscription;

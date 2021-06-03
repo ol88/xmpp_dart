@@ -12,6 +12,9 @@ import 'package:xmpp_stone/src/elements/nonzas/Nonza.dart';
 import 'package:xmpp_stone/src/elements/stanzas/AbstractStanza.dart';
 import 'package:xmpp_stone/src/extensions/ping/PingManager.dart';
 import 'package:xmpp_stone/src/features/ConnectionNegotatiorManager.dart';
+import 'package:xmpp_stone/src/features/servicediscovery/CarbonsNegotiator.dart';
+import 'package:xmpp_stone/src/features/servicediscovery/MAMNegotiator.dart';
+import 'package:xmpp_stone/src/features/servicediscovery/ServiceDiscoveryNegotiator.dart';
 import 'package:xmpp_stone/src/features/streammanagement/StreamManagmentModule.dart';
 import 'package:xmpp_stone/src/parser/StanzaParser.dart';
 import 'package:xmpp_stone/src/presence/PresenceManager.dart';
@@ -237,6 +240,19 @@ xml:lang='en'
       }
       authenticated = false;
     }
+  }
+
+  void dispose() {
+    RosterManager.removeInstance(this);
+    PresenceManager.removeInstance(this);
+    MessageHandler.removeInstance(this);
+    PingManager.removeInstance(this);
+    ServiceDiscoveryNegotiator.removeInstance(this);
+    StreamManagementModule.removeInstance(this);
+    CarbonsNegotiator.removeInstance(this);
+    MAMNegotiator.removeInstance(this);
+    reconnectionManager?.close();
+    _socket?.close();
   }
 
   bool startMatcher(xml.XmlElement element) {
