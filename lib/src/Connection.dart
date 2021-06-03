@@ -75,6 +75,10 @@ class Connection {
     return connection;
   }
 
+  static void removeInstance(XmppAccountSettings account) {
+    instances.remove(account);
+  }
+
   String? errorMessage;
 
   bool authenticated = false;
@@ -413,10 +417,9 @@ xml:lang='en'
   }
 
   bool elementHasAttribute(xml.XmlElement element, xml.XmlAttribute attribute) {
-    var list = element.attributes.firstWhereOrNull(
-        (attr) =>
-            attr.name.local == attribute.name.local &&
-            attr.value == attribute.value);
+    var list = element.attributes.firstWhereOrNull((attr) =>
+        attr.name.local == attribute.name.local &&
+        attr.value == attribute.value);
     return list != null;
   }
 
