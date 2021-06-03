@@ -26,13 +26,13 @@ class MAMNegotiator extends Negotiator {
   }
 
   static void removeInstance(Connection connection) {
-    _instances[connection]?._subscription.cancel();
+    _instances[connection]?._subscription?.cancel();
     _instances.remove(connection);
   }
 
   late IqStanza _myUnrespondedIqStanza;
 
-  late StreamSubscription<AbstractStanza?> _subscription;
+  StreamSubscription<AbstractStanza?>? _subscription;
 
   final Connection _connection;
 
@@ -116,7 +116,7 @@ class MAMNegotiator extends Negotiator {
         });
       }
       state = NegotiatorState.DONE;
-      _subscription.cancel();
+      _subscription?.cancel();
     }
   }
 
