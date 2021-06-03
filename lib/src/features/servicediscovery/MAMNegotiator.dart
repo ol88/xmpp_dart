@@ -26,6 +26,11 @@ class MAMNegotiator extends Negotiator {
     return instance;
   }
 
+  static void removeInstance(Connection connection) {
+    _instances[connection]?._subscription?.cancel();
+    _instances.remove(connection);
+  }
+
   IqStanza _myUnrespondedIqStanza;
 
   StreamSubscription<AbstractStanza> _subscription;
@@ -88,7 +93,7 @@ class MAMNegotiator extends Negotiator {
       if (x != null) {
         x.children.forEach((element) {
           if (element is FieldElement) {
-            switch(element.varAttr) {
+            switch (element.varAttr) {
               case 'start':
                 _supportedParameters.add(MamQueryParameters.START);
                 break;

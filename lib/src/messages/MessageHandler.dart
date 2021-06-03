@@ -24,6 +24,10 @@ class MessageHandler implements MessageApi {
     return manager;
   }
 
+  static void removeInstance(Connection connection) {
+    instances.remove(connection);
+  }
+
   Connection _connection;
 
   MessageHandler(Connection connection) {

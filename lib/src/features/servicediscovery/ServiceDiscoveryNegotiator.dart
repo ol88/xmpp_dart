@@ -28,6 +28,11 @@ class ServiceDiscoveryNegotiator extends Negotiator {
     return instance;
   }
 
+  static void removeInstance(Connection connection) {
+    _instances[connection]?.subscription?.cancel();
+    _instances.remove(connection);
+  }
+
   IqStanza fullRequestStanza;
 
   StreamSubscription<AbstractStanza> subscription;
@@ -74,8 +79,7 @@ class ServiceDiscoveryNegotiator extends Negotiator {
       state = NegotiatorState.NEGOTIATING;
       subscription = _connection.inStanzasStream.listen(_parseStanza);
       _sendServiceDiscoveryRequest();
-    } else if (state == NegotiatorState.DONE) {
-    }
+    } else if (state == NegotiatorState.DONE) {}
   }
 
   void _sendServiceDiscoveryRequest() {

@@ -16,7 +16,6 @@ import '../../../xmpp_stone.dart';
 import '../Negotiator.dart';
 
 class StreamManagementModule extends Negotiator {
-
   static const TAG = 'StreamManagementModule';
 
   static Map<Connection, StreamManagementModule> instances =
@@ -31,8 +30,18 @@ class StreamManagementModule extends Negotiator {
     return module;
   }
 
+  static void removeInstance(Connection connection) {
+    var instance = instances[connection];
+    instance?.inNonzaSubscription?.cancel();
+    instance?.outStanzaSubscription?.cancel();
+    instance?.inNonzaSubscription?.cancel();
+    instance?._xmppConnectionStateSubscription?.cancel();
+    instances.remove(connection);
+  }
+
   StreamState streamState = StreamState();
   Connection _connection;
+  StreamSubscription<XmppConnectionState> _xmppConnectionStateSubscription;
   StreamSubscription<AbstractStanza> inStanzaSubscription;
   StreamSubscription<AbstractStanza> outStanzaSubscription;
   StreamSubscription<Nonza> inNonzaSubscription;
@@ -76,28 +85,36 @@ class StreamManagementModule extends Negotiator {
     _connection.streamManagementModule = this;
     ackTurnedOn = connection.account.ackEnabled;
     expectedName = 'StreamManagementModule';
-    _connection.connectionStateStream.listen((state) {
-          if (state == XmppConnectionState.Reconnecting) {
-            backToIdle();
-          }
-          if (!_connection.isOpened() && timer != null) {timer.cancel();};
-          if (state == XmppConnectionState.Closed) {
-            streamState = StreamState();
-            //state = XmppConnectionState.Idle;
-          }
-        });
+    _xmppConnectionStateSubscription =
+        _connection.connectionStateStream.listen((state) {
+      if (state == XmppConnectionState.Reconnecting) {
+        backToIdle();
+      }
+      if (!_connection.isOpened() && timer != null) {
+        timer.cancel();
+      }
+      ;
+      if (state == XmppConnectionState.Closed) {
+        streamState = StreamState();
+        //state = XmppConnectionState.Idle;
+      }
+    });
   }
 
   @override
   List<Nonza> match(List<Nonza> requests) {
-  var nonza = requests.firstWhere((request) => SMNonza.match(request), orElse: () => null);
-  return nonza != null ? [nonza] : [];
+    var nonza = requests.firstWhere((request) => SMNonza.match(request),
+        orElse: () => null);
+    return nonza != null ? [nonza] : [];
   }
 
   //TODO: Improve
   @override
   void negotiate(List<Nonza> nonzas) {
-    if (nonzas != null && nonzas.isNotEmpty && SMNonza.match(nonzas[0]) && _connection.authenticated) {
+    if (nonzas != null &&
+        nonzas.isNotEmpty &&
+        SMNonza.match(nonzas[0]) &&
+        _connection.authenticated) {
       state = NegotiatorState.NEGOTIATING;
       inNonzaSubscription = _connection.inNonzasStream.listen(parseNonza);
       if (streamState.isResumeAvailable()) {
@@ -110,7 +127,10 @@ class StreamManagementModule extends Negotiator {
 
   @override
   bool isReady() {
-    return super.isReady() && (isResumeAvailable() || (_connection.fullJid.resource != null && _connection.fullJid.resource.isNotEmpty));
+    return super.isReady() &&
+        (isResumeAvailable() ||
+            (_connection.fullJid.resource != null &&
+                _connection.fullJid.resource.isNotEmpty));
   }
 
   void parseNonza(Nonza nonza) {
@@ -127,7 +147,8 @@ class StreamManagementModule extends Negotiator {
           negotiatorStateStreamController = StreamController();
           state = NegotiatorState.IDLE; //we will try again
         } else {
-          Log.d(TAG, 'StreamManagmentFailed'); //try to send an error down to client
+          Log.d(TAG,
+              'StreamManagmentFailed'); //try to send an error down to client
           state = NegotiatorState.DONE;
         }
       }
@@ -184,7 +205,7 @@ class StreamManagementModule extends Negotiator {
       _connection.writeNonza(ANonza(streamState.lastReceivedStanza));
 
   void tryToResumeStream() {
-    if(!streamState.tryingToResume) {
+    if (!streamState.tryingToResume) {
       _connection.writeNonza(
           ResumeNonza(streamState.id, streamState.lastReceivedStanza));
       streamState.tryingToResume = true;

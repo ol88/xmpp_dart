@@ -11,7 +11,8 @@ import 'package:tuple/tuple.dart';
 //todo check for rfc6121 2.6.2
 //todo add support for jid groups
 class RosterManager {
-  static Map<Connection, RosterManager> instances = <Connection, RosterManager>{};
+  static Map<Connection, RosterManager> instances =
+      <Connection, RosterManager>{};
 
   static RosterManager getInstance(Connection connection) {
     var manager = instances[connection];
@@ -22,9 +23,20 @@ class RosterManager {
     return manager;
   }
 
-  final Map<String, Tuple2<IqStanza, Completer>> _myUnrespondedIqStanzas = <String, Tuple2<IqStanza, Completer>>{};
+  static void removeInstance(Connection connection) {
+    instances[connection]?._abstractStanzaSubscription?.cancel();
+    instances[connection]?._xmppConnectionStateSubscription?.cancel();
+    instances.remove(connection);
+  }
 
-  final StreamController<List<Buddy>> _rosterController = StreamController<List<Buddy>>.broadcast();
+  final Map<String, Tuple2<IqStanza, Completer>> _myUnrespondedIqStanzas =
+      <String, Tuple2<IqStanza, Completer>>{};
+
+  final StreamController<List<Buddy>> _rosterController =
+      StreamController<List<Buddy>>.broadcast();
+
+  StreamSubscription<XmppConnectionState> _xmppConnectionStateSubscription;
+  StreamSubscription<AbstractStanza> _abstractStanzaSubscription;
 
   Stream<List<Buddy>> get rosterStream {
     return _rosterController.stream;
@@ -91,8 +103,10 @@ class RosterManager {
 
   RosterManager(Connection connection) {
     _connection = connection;
-    connection.connectionStateStream.listen(_connectionStateProcessor);
-    connection.inStanzasStream.listen(_processStanza);
+    _xmppConnectionStateSubscription =
+        connection.connectionStateStream.listen(_connectionStateProcessor);
+    _abstractStanzaSubscription =
+        connection.inStanzasStream.listen(_processStanza);
   }
 
   void _connectionStateProcessor(XmppConnectionState state) {
@@ -127,7 +141,8 @@ class RosterManager {
   }
 
   bool _isFullJidRequest(IqStanza iqStanza) {
-    return (iqStanza.type == IqStanzaType.GET && (iqStanza.getChild('query')?.children?.isEmpty ?? false));
+    return (iqStanza.type == IqStanzaType.GET &&
+        (iqStanza.getChild('query')?.children?.isEmpty ?? false));
   }
 
   bool _isRosterSet(IqStanza iqStanza) {
@@ -141,7 +156,8 @@ class RosterManager {
 
   void _handleFullRosterResponse(IqStanza stanza) {
     var xmppElement = stanza.getChild('query');
-    if (xmppElement != null && xmppElement.getNameSpace() == 'jabber:iq:roster') {
+    if (xmppElement != null &&
+        xmppElement.getNameSpace() == 'jabber:iq:roster') {
       _rosterMap.clear();
       xmppElement.children.forEach((child) {
         if (child.name == 'item') {
