@@ -33,6 +33,8 @@ class StreamManagementModule extends Negotiator {
 
   static void removeInstance(Connection connection) {
     var instance = instances[connection];
+    instance?.timer?.cancel();
+    instance?.timer = null;
     instance?.inNonzaSubscription?.cancel();
     instance?.outStanzaSubscription?.cancel();
     instance?.inNonzaSubscription?.cancel();
