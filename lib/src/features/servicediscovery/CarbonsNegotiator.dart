@@ -30,7 +30,7 @@ class CarbonsNegotiator extends Negotiator {
   }
 
   static void removeInstance(Connection connection) {
-    _instances[connection]?._subscription.cancel();
+    _instances[connection]?._subscription?.cancel();
     _instances.remove(connection);
   }
 
@@ -38,7 +38,7 @@ class CarbonsNegotiator extends Negotiator {
 
   bool enabled = false;
 
-  late StreamSubscription<AbstractStanza?> _subscription;
+  StreamSubscription<AbstractStanza?>? _subscription;
   late IqStanza _myUnrespondedIqStanza;
 
   CarbonsNegotiator(this._connection) {
@@ -77,7 +77,7 @@ class CarbonsNegotiator extends Negotiator {
     if (stanza is IqStanza && stanza.id == _myUnrespondedIqStanza.id) {
       enabled = stanza.type == IqStanzaType.RESULT;
       state = NegotiatorState.DONE;
-      _subscription.cancel();
+      _subscription?.cancel();
     }
   }
 }
