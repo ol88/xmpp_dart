@@ -246,7 +246,15 @@ xml:lang='en'
     }
   }
 
+  /// Dispose of the connection so stops all activities and cannot be re-used.
+  /// For the connection to be garbage collected.
+  /// 
+  /// If the Connection instance was created with [getInstance],
+  /// you must also call [Connection.removeInstance] after calling [dispose].
+  /// 
+  /// If you intend to re-use the connection later, consider just calling [close] instead.
   void dispose() {
+    close();
     RosterManager.removeInstance(this);
     PresenceManager.removeInstance(this);
     MessageHandler.removeInstance(this);

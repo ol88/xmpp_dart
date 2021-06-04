@@ -55,6 +55,7 @@ class ReconnectionManager {
   }
 
   void close() {
+    timer?.cancel();
     _xmppConnectionStateSubscription.cancel();
   }
 }
